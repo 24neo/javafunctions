@@ -27,7 +27,7 @@ public class Main {
 
             // Call the function to replace tags in the DOCX document
             String modifiedDocxBase64 = replaceTagsInDocx(base64Docx, jsonInput);
-            System.out.println(modifiedDocxBase64); // This is the modified DOCX in Base64
+            System.out.println(modifiedDocxBase64); 
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -123,7 +123,7 @@ public class Main {
                 text = text.replace(groupTag, groupName);
             }
 
-            //Loop Questions within the QuestionGroup
+            // Loop Questions within the QuestionGroup
             JsonNode questions = questionGroup.path("Question");
             for (JsonNode question : questions) {
                 String questionId = question.path("QuestionID").asText();
@@ -136,13 +136,13 @@ public class Main {
                     text = text.replace(questionTag, questionName);
                 }
 
-                //Process answers for replacements
+                // Process answers for replacements
                 JsonNode answers = question.path("Answer");
                 for (JsonNode answer : answers) {
                     String answerID = answer.path("AnswerID").asText(); // Get AnswerID
                     String answerName = answer.path("Name").asText(); // Get Name
 
-                    //replace answer tags
+                    // replace answer tags
                     String answerTag = "{{" + answerID + "}}";
                     if (text.contains(answerTag)) {
                         System.out.println("Replacing: " + answerTag + " with " + answerName);
