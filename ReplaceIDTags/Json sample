@@ -4,7 +4,7 @@ NEW:
 "{{EfxResponse.FirstNameMatchFlag}}": "me",
 "{{EfxResponse.Addressess.AddressType}}": "Recidency"}
 
-DEPRACATED: {
+NOT SUPPORTED (SEE ReplaceIDTagsNestedJson function): {
     "Q1": {
         "QuestionGroup": [
             {
