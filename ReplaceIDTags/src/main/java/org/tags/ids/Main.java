@@ -1,5 +1,7 @@
 package org.tags.ids;
 
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -7,12 +9,11 @@ import org.apache.poi.xwpf.usermodel.XWPFParagraph;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFRun;
-import com.amazonaws.services.lambda.runtime.Context;
-import com.amazonaws.services.lambda.runtime.RequestHandler;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
+import java.util.Iterator;
 import java.util.Map;
 
 public class Main implements RequestHandler<Map<String, String>, String> {
@@ -78,7 +79,6 @@ public class Main implements RequestHandler<Map<String, String>, String> {
             System.out.println("Original Text: " + paragraphText);
             System.out.println("New Text: " + newText);
 
-
             if (!newText.equals(paragraphText)) {
                 for (int i = paragraph.getRuns().size() - 1; i >= 0; i--) {
                     paragraph.removeRun(i);
@@ -96,36 +96,19 @@ public class Main implements RequestHandler<Map<String, String>, String> {
     }
 
     private static String replaceTags(String text, JsonNode rootNode) {
-        JsonNode answerArray = rootNode.path("Q1").path("QuestionGroup");
+        // Iterate through the rootNode which now contains direct key-value pairs
+        for (Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> entry = it.next();
+            String tag = entry.getKey(); // e.g., "{{Customer.FirstName}}"
+            String replacement = entry.getValue().asText(); // e.g., "Andrea test"
 
-        for (JsonNode questionGroup : answerArray) {
-            JsonNode questions = questionGroup.path("Question");
+            System.out.println("Replacing: " + tag + " with " + replacement);
 
-            for (JsonNode question : questions) {
-                String QuestionID = question.path("QuestionID").asText();
-                String questionName = question.path("Name").asText();
-                System.out.println("Replacing: {{" + QuestionID + "}} with " + questionName);
-
-                String tagToReplaceQ = "{{" + QuestionID + "}}";
-                if (text.contains(tagToReplaceQ)) {
-                    text = text.replace(tagToReplaceQ, questionName);
-                } else {
-                    System.out.println("Tag " + tagToReplaceQ + " not found in text.");
-                }
-                JsonNode answers = question.path("Answer");
-
-                for (JsonNode answer : answers) {
-                    String answerID = answer.path("AnswerID").asText();
-                    String answerName = answer.path("Name").asText();
-                    System.out.println("Replacing: {{" + answerID + "}} with " + answerName);
-
-                    String tagToReplace = "{{" + answerID + "}}";
-                    if (text.contains(tagToReplace)) {
-                        text = text.replace(tagToReplace, answerName);
-                    } else {
-                        System.out.println("Tag " + tagToReplace + " not found in text.");
-                    }
-                }
+            // Replace the tag in the text if it exists
+            if (text.contains(tag)) {
+                text = text.replace(tag, replacement);
+            } else {
+                System.out.println("Tag " + tag + " not found in text.");
             }
         }
         return text;
