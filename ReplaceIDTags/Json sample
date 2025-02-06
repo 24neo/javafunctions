@@ -1,4 +1,10 @@
+NEW: 
 {
+"{{Customer.FirstName}}":"neo24 test", 
+"{{EfxResponse.FirstNameMatchFlag}}": "me",
+"{{EfxResponse.Addressess.AddressType}}": "Recidency"}
+
+DEPRACATED: {
     "Q1": {
         "QuestionGroup": [
             {
