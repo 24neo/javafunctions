@@ -99,8 +99,8 @@ public class Main implements RequestHandler<Map<String, String>, String> {
         // Iterate through the rootNode which now contains direct key-value pairs
         for (Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields(); it.hasNext(); ) {
             Map.Entry<String, JsonNode> entry = it.next();
-            String tag = entry.getKey(); // e.g., "{{Customer.FirstName}}"
-            String replacement = entry.getValue().asText(); // e.g., "Andrea test"
+            String tag = entry.getKey(); // for example {{tagname}}
+            String replacement = entry.getValue().asText(); // for example "neo24 test"
 
             System.out.println("Replacing: " + tag + " with " + replacement);
 
