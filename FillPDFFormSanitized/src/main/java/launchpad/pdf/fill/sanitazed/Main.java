@@ -20,12 +20,12 @@ import java.util.Map;
 
 public class Main implements RequestHandler<Map<String, Object>, String> {
 
-    private final ObjectMapper objectMapper = new ObjectMapper(); // Jackson ObjectMapper for JSON parsing
+    private final ObjectMapper objectMapper = new ObjectMapper(); // JSON parsing
 
     @Override
     public String handleRequest(Map<String, Object> input, Context context) {
         try {
-            // Get the base64 PDF and JSON input from the request
+            // Two inputs
             String base64PDF = (String) input.get("base64PDF");
             String jsonCase = (String) input.get("jsonCase");
 
@@ -33,7 +33,7 @@ public class Main implements RequestHandler<Map<String, Object>, String> {
                 return "Error: Missing required input (base64PDF or jsonCase)";
             }
 
-            // Sanitize the JSON string to escape problematic characters in field names and values
+            // Clean the JSON
             jsonCase = sanitizeJsonString(jsonCase);
 
             // Decode base64 PDF to a byte array
@@ -49,7 +49,7 @@ public class Main implements RequestHandler<Map<String, Object>, String> {
                 Map<String, Object> jsonMap = parseJson(jsonCase);
 
                 for (Map.Entry<String, Object> entry : jsonMap.entrySet()) {
-                    // Sanitize the field name by removing or escaping control characters
+                    // Sanitize the field name by removing or avoiding characters
                     String fieldName = sanitizeFieldName(entry.getKey());
                     Object value = entry.getValue();
 
@@ -60,7 +60,7 @@ public class Main implements RequestHandler<Map<String, Object>, String> {
                         // Normalize the value
                         String normalizedValue = normalizeValue(value);
 
-                        if (field instanceof PDComboBox) { // If it's a dropdown
+                        if (field instanceof PDComboBox) { // For dropdowns
                             PDComboBox comboBox = (PDComboBox) field;
                             List<String> options = comboBox.getOptions();
 
@@ -70,49 +70,49 @@ public class Main implements RequestHandler<Map<String, Object>, String> {
                             } else {
                                 comboBox.setValue(""); // Leave blank if invalid
                             }
-                        } else if (field instanceof PDCheckBox) { // If it's a checkbox
+                        } else if (field instanceof PDCheckBox) { // For checkbox
                             PDCheckBox checkBox = (PDCheckBox) field;
 
-                            // Check the box if the value is equivalent to "true", "yes", etc.
+                            // Check the box if the value is equivalent to "true" or "yes"
                             if (normalizedValue.equals("true") || normalizedValue.equals("Yes")) {
                                 checkBox.check();
                             } else {
                                 checkBox.unCheck();
                             }
-                        } else if (field instanceof PDRadioButton) { // If it's a radio button
+                        } else if (field instanceof PDRadioButton) { // For radio buttons
                             PDRadioButton radioButton = (PDRadioButton) field;
 
-                            // Get the export values (options) for radio buttons
+                            // Get options for radio buttons
                             List<String> exportValues = radioButton.getExportValues();
 
-                            // Normalize the input value (e.g., trim spaces and convert to lowercase)
+                            // Normalize the input, trim spaces and convert to lowercase
                             String normalizedInputValue = normalizeValue(value).trim().toLowerCase();
 
-                            // Loop through the export values and normalize them (trim spaces and convert to lowercase)
+                            // Loop through the export values and normalize them
                             for (String exportValue : exportValues) {
-                                // Normalize each export value (trim spaces and convert to lowercase)
+                                // Normalize each option
                                 String normalizedExportValue = exportValue.trim().toLowerCase();
 
-                                // Check if the normalized input value matches any of the normalized export values
+                                // Check if the input is in a option
                                 if (normalizedInputValue.equals(normalizedExportValue)) {
-                                    // Set the radio button selected by passing the export value to setValue()
-                                    radioButton.setValue(exportValue);  // Use the original export value for selection
-                                    break; // Once a match is found, exit the loop
+                                    // Select the radio button
+                                    radioButton.setValue(exportValue); 
+                                    break;
                                 }
                             }
-                    } else if (field instanceof PDTextField) { // If it's a text field
+                    } else if (field instanceof PDTextField) { // For text fields
                             PDTextField textField = (PDTextField) field;
 
-                            // If the field is a boolean or "Yes"/"No", set the value as "Yes" or "No"
+                            // If the field is a boolean or yes/no, set the value as "Yes" or "No"
                             if (normalizedValue.equals("true") || normalizedValue.equals("Yes")) {
                                 textField.setValue("Yes");
                             } else if (normalizedValue.equals("false") || normalizedValue.equals("No")) {
                                 textField.setValue("No");
                             } else {
-                                textField.setValue(normalizedValue); // Set regular text fields
+                                textField.setValue(normalizedValue); // Set text
                             }
                         } else {
-                            field.setValue(normalizedValue); // Set regular text fields
+                            field.setValue(normalizedValue); // Set text fields
                         }
                     }
                 }
@@ -135,10 +135,10 @@ public class Main implements RequestHandler<Map<String, Object>, String> {
 
     // Helper method to parse the JSON string into a Map using Jackson
     private Map<String, Object> parseJson(String json) throws IOException {
-        return objectMapper.readValue(json, Map.class); // Convert JSON to a Map with Object values
+        return objectMapper.readValue(json, Map.class); // Convert JSON to a Map
     }
 
-    // Normalize values to ensure proper formatting for different data types
+    // Normalize values
     private String normalizeValue(Object value) {
         if (value == null) return "";
 
@@ -158,21 +158,21 @@ public class Main implements RequestHandler<Map<String, Object>, String> {
 
     // Helper method to sanitize the field name
     private String sanitizeFieldName(String fieldName) {
-        // Replace all non-printable characters (like tabs, newlines) and spaces with an underscore
+        // Replace all non-printable characters ( tabs, newlines) and spaces with an underscore
         return fieldName.replaceAll("[\\x00-\\x1F\\x7F]", "_").replaceAll("\\s+", " ").trim(); // Handle extra spaces
     }
 
-    // Helper method to sanitize the JSON string by escaping control characters
+    // Helper method to sanitize the JSON string by avoiding characters
     private String sanitizeJsonString(String json) {
-        // Escape control characters (tab, newline, etc.) in the JSON string
+        // Escape tab, newline, etc. in the JSON string
         StringBuilder sanitizedJson = new StringBuilder();
 
         for (int i = 0; i < json.length(); i++) {
             char ch = json.charAt(i);
-            if (ch < 32 || ch == 127) { // Non-printable characters (control characters)
+            if (ch < 32 || ch == 127) { // Non-printable characters (control characters), to be confirmed
                 sanitizedJson.append(String.format("\\u%04x", (int) ch));
             } else {
-                sanitizedJson.append(ch); // Keep printable characters as is
+                sanitizedJson.append(ch);
             }
         }
 
