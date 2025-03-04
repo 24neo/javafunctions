@@ -50,7 +50,52 @@ public class Main implements RequestHandler<Map<String, String>, String> {
             return Base64.getEncoder().encodeToString(outputStream.toByteArray());
         }
     }
+/*     //This is the new method to suport invalid inputs; this is commented to be activated in case to support other kind of tags
+    private static String replaceTags(String text, JsonNode rootNode) {
+        // Regex pattern to match all three tag formats: {{tag}}, {tag}}, and {{tag}.
+        String regex = "(\\{\\{([^\}]+))\\}\\}|\\{([^\}]+)\\}\\}|\\{\\{([^\}]+)\\})";
 
+        // Iterate json
+        for (Iterator<Map.Entry<String, JsonNode>> it = rootNode.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> entry = it.next();
+            String tag = entry.getKey(); // {{tag}},{tag}},}}tag{{ or {{tag}
+            String replacement = entry.getValue().asText(); //value
+
+            System.out.println("Replacing: " + tag + " with " + replacement);
+
+            // Create a Pattern object
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(text);
+
+            // Use Matcher to find matches and replace them
+            StringBuffer sb = new StringBuffer();
+            while (matcher.find()) {
+                // Check which tag format was matched
+                String matchedTag = matcher.group(0); // Get the full match
+                if (matchedTag.contains("{{") && matchedTag.contains("}}")) {
+                    // for {{tag}}
+                    matchedTag = matchedTag.replace(tag, replacement);
+                } else if (matchedTag.contains("{") && matchedTag.contains("}}")) {
+                    // for {tag}}
+                    matchedTag = matchedTag.replace(tag, replacement);
+                    matchedTag = matchedTag.replace(tag, replacement);
+                } else if (matchedTag.contains("{{") && !matchedTag.contains("}}")) {
+                    // for {{tag}
+                    matchedTag = matchedTag.replace(tag, replacement);
+                }
+
+                // Append the modified match to the StringBuffer
+                matcher.appendReplacement(sb, matchedTag);
+            }
+            // Append the remaining part of the string
+            matcher.appendTail(sb);
+
+            // Update the text with all replacements done
+            text = sb.toString();
+        }
+
+        return text;
+    }*/
     private static void replaceTagsInDocument(XWPFDocument document, JsonNode rootNode) {
         // Replace tags in paragraphs
         for (XWPFParagraph paragraph : document.getParagraphs()) {
